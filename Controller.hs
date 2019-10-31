@@ -8,10 +8,17 @@ import Model
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 import System.Random
+import qualified Data.Set as S
+
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step secs gstate = return $ gstate
+step _ gstate
+          | S.member (SpecialKey KeyUp) (keys gstate) = return $ setPlayerPosFromState gstate (0, 25)
+          | S.member (SpecialKey KeyDown) (keys gstate) = return $ setPlayerPosFromState gstate (0, -25)
+          | S.member (SpecialKey KeyLeft) (keys gstate) = return $ setPlayerPosFromState gstate (-25, 0)
+          | S.member (SpecialKey KeyRight) (keys gstate) = return $ setPlayerPosFromState gstate (25, 0)
+          | otherwise = return $ gstate
 
 getPlayerPosFromState :: GameState ->  (Float, Float)
 -- getPlayerPosFromState = ship . posPlayer
@@ -26,8 +33,12 @@ addPos (p1, p2) (p3, p4) = (p1 + p3, p2 + p4)
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
-input (EventKey (SpecialKey KeyUp) _ _ _) gstate = return $ setPlayerPosFromState gstate (0, 0.01)
-input (EventKey (SpecialKey KeyDown) _ _ _) gstate = return $ setPlayerPosFromState gstate (0, -0.01)
-input (EventKey (SpecialKey KeyLeft) _ _ _) gstate = return $ setPlayerPosFromState gstate (-0.01, 0)
-input (EventKey (SpecialKey KeyRight) _ _ _) gstate = return $ setPlayerPosFromState gstate (0.01, 0)
+input (EventKey k Down _ _) gstate = return $ gstate {keys = S.insert k (keys gstate)}--update_World (setPlayerPosFromState gstate (0, 25))
+input (EventKey k Up _ _) gstate = return $ gstate {keys = S.delete k (keys gstate)}
+--input (EventKey (SpecialKey KeyDown) _ _ _) gstate = return $ setPlayerPosFromState gstate (0, -25)
+--input (EventKey (SpecialKey KeyLeft) _ _ _) gstate = return $ setPlayerPosFromState gstate (-25, 0)
+--input (EventKey (SpecialKey KeyRight) _ _ _) gstate = return $ setPlayerPosFromState gstate (25, 0)
+--input _ gstate = return $ gstate
 input _ gstate = return $ gstate
+
+
