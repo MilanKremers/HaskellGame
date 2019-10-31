@@ -25,6 +25,7 @@ data Bullet = Bullet {posBullet :: (Float, Float), direction :: Direction}
 data Enemy = Enemy {posEnemy :: (Float, Float), livesEnemy :: Int}
 
 data Status = Play | Pause
+  deriving(Eq)
 
 class Moveable a where 
   move :: a -> (Float, Float) -> a -> GameState

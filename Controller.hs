@@ -14,6 +14,7 @@ import qualified Data.Set as S
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
 step _ gstate
+          | (isPaused gstate) == Pause = return $ gstate 
           | S.member (SpecialKey KeyUp) (keys gstate) = return $ setPlayerPosFromState gstate (0, 25)
           | S.member (SpecialKey KeyDown) (keys gstate) = return $ setPlayerPosFromState gstate (0, -25)
           | S.member (SpecialKey KeyLeft) (keys gstate) = return $ setPlayerPosFromState gstate (-25, 0)
@@ -33,6 +34,8 @@ addPos (p1, p2) (p3, p4) = (p1 + p3, p2 + p4)
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
+input (EventKey (Char 'p') Down _ _) gstate | (isPaused gstate) == Play = return $ gstate{isPaused = Pause}
+                                            | otherwise                 = return $ gstate{isPaused = Play}
 input (EventKey k Down _ _) gstate = return $ gstate {keys = S.insert k (keys gstate)}--update_World (setPlayerPosFromState gstate (0, 25))
 input (EventKey k Up _ _) gstate = return $ gstate {keys = S.delete k (keys gstate)}
 --input (EventKey (SpecialKey KeyDown) _ _ _) gstate = return $ setPlayerPosFromState gstate (0, -25)
