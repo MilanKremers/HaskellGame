@@ -21,12 +21,18 @@ step _ gstate
           | S.member (SpecialKey KeyRight) (keys gstate) = return $ setPlayerPosFromState gstate (25, 0)
           | otherwise = return $ gstate
 
-getPlayerPosFromState :: GameState ->  (Float, Float)
--- getPlayerPosFromState = ship . posPlayer
-getPlayerPosFromState x = posPlayer $ ship x 
+getPosX :: Player -> Float
+getPosX Player{ posPlayer = (p1, p2) } = p1 
+
+getPosY :: Player -> Float
+getPosY Player{ posPlayer = (p1, p2) } = p2
 
 setPlayerPosFromState :: GameState -> (Float, Float) -> GameState
-setPlayerPosFromState x@GameState{ship=s} newPos= x{ship=newShip}
+setPlayerPosFromState x@GameState{ship=s} newPos@(p1, p2) | p1 == 0 && p2 > 0 && getPosY s < 540  = x{ship=newShip}
+                                                          | p1 == 0 && p2 < 0 && getPosY s > -500 = x{ship=newShip}
+                                                          | p2 == 0 && p1 > 0 && getPosX s < 940  = x{ship=newShip}
+                                                          | p2 == 0 && p1 < 0 && getPosX s > -940 = x{ship=newShip}
+                                                          | otherwise                             = x
   where newShip = s{posPlayer = addPos (posPlayer s) newPos}
 
 addPos :: (Float, Float) -> (Float, Float) -> (Float, Float)
@@ -36,12 +42,9 @@ addPos (p1, p2) (p3, p4) = (p1 + p3, p2 + p4)
 input :: Event -> GameState -> IO GameState
 input (EventKey (Char 'p') Down _ _) gstate | (isPaused gstate) == Play = return $ gstate{isPaused = Pause}
                                             | otherwise                 = return $ gstate{isPaused = Play}
-input (EventKey k Down _ _) gstate = return $ gstate {keys = S.insert k (keys gstate)}--update_World (setPlayerPosFromState gstate (0, 25))
+input (EventKey (Char 'f') Down _ _) gstate = return $ gstate{bullets = (Bullet{ posBullet = (posPlayer $ ship gstate), direction = R } : (bullets gstate))}
+input (EventKey k Down _ _) gstate = return $ gstate {keys = S.insert k (keys gstate)}
 input (EventKey k Up _ _) gstate = return $ gstate {keys = S.delete k (keys gstate)}
---input (EventKey (SpecialKey KeyDown) _ _ _) gstate = return $ setPlayerPosFromState gstate (0, -25)
---input (EventKey (SpecialKey KeyLeft) _ _ _) gstate = return $ setPlayerPosFromState gstate (-25, 0)
---input (EventKey (SpecialKey KeyRight) _ _ _) gstate = return $ setPlayerPosFromState gstate (25, 0)
---input _ gstate = return $ gstate
 input _ gstate = return $ gstate
 
 
