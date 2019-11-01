@@ -12,27 +12,24 @@ view' :: [Picture] -> Picture
 view' xs = Pictures xs
 
 viewPure :: GameState -> [Picture]
-viewPure g = drawShip g : drawBullets g ++ []
+viewPure g = drawShip g : drawBullets g ++ drawEnemies g ++ []
 
 drawShip :: GameState -> Picture
-drawShip GameState{ship = s} = translate (getPos1 s) (getPos2 s) (color green (Circle 50)) 
+drawShip GameState{ship = s} = translate (posPX s) (posPY s) (color green (Circle 50)) 
 
 drawBullets :: GameState -> [Picture]
 drawBullets GameState{bullets = bullets} = drawBullets' bullets
 
 drawBullets' :: [Bullet] -> [Picture]
 drawBullets' []     = []
-drawBullets' [b]    = translate (getPos1B b) (getPos2B b) (color red (Circle 5)) : []
-drawBullets' (b:bs) = translate (getPos1B b) (getPos2B b) (color red (Circle 5)) : drawBullets' bs 
+drawBullets' [b]    = translate (posBX b) (posBY b) (color red (Circle 5)) : []
+drawBullets' (b:bs) = translate (posBX b) (posBY b) (color red (Circle 5)) : drawBullets' bs 
 
-getPos1 :: Player -> Float
-getPos1 Player{ posPlayer = (p1, p2) } = p1 
+drawEnemies :: GameState -> [Picture]
+drawEnemies GameState{enemies = enemies} = drawEnemies' enemies
 
-getPos2 :: Player -> Float
-getPos2 Player{ posPlayer = (p1, p2) } = p2
+drawEnemies' :: [Enemy] -> [Picture]
+drawEnemies' []     = []
+drawEnemies' [e]    = translate (posEX e) (posEY e) (color yellow (Circle 15)) : []
+drawEnemies' (e:es) = translate (posEX e) (posEY e) (color yellow (Circle 15)) : drawEnemies' es
 
-getPos1B :: Bullet -> Float
-getPos1B Bullet{ posBullet = (p1, p2) } = p1 
-
-getPos2B :: Bullet -> Float
-getPos2B Bullet{ posBullet = (p1, p2) } = p2

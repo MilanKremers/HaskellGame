@@ -19,11 +19,11 @@ data GameState = GameState {
 data Direction = L | R
   deriving (Eq)
 
-data Player = Player {posPlayer :: (Float, Float), livesPlayer :: Int}
+data Player = Player {posPX :: Float, posPY :: Float, livesPlayer :: Int}
   
-data Bullet = Bullet {posBullet :: (Float, Float), direction :: Direction}
+data Bullet = Bullet {posBX :: Float, posBY :: Float, direction :: Direction}
 
-data Enemy = Enemy {posEnemy :: (Float, Float), livesEnemy :: Int}
+data Enemy = Enemy {posEX :: Float, posEY :: Float, livesEnemy :: Int}
 
 data Status = Play | Pause
   deriving(Eq)
@@ -38,4 +38,4 @@ class Renderable a where
   render :: a -> GameState
 
 initialState :: GameState
-initialState = GameState{enemies = [], bullets = [], ship = Player{posPlayer = (0, 0), livesPlayer = 3}, isPaused = Play, keys = S.empty}
+initialState = GameState{enemies = [], bullets = [], ship = Player{posPX = 0, posPY = 0, livesPlayer = 3}, isPaused = Play, keys = S.empty}
