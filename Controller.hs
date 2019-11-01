@@ -13,8 +13,8 @@ import qualified Data.Set as S
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
 step _ gstate@GameState{enemies = e, bullets  = b, ship = s, isPaused = p, keys = k}
-          | p == Pause = return $ gstate  
-          | otherwise = return $ collisionDetection GameState{enemies = stepEnemies e, bullets = stepBullets b, ship = stepPlayer k s, isPaused = p, keys = k}
+  | p == Pause = return $ gstate  
+  | otherwise = return $ collisionDetection GameState{enemies = stepEnemies e, bullets = stepBullets b, ship = stepPlayer k s, isPaused = p, keys = k}
 
 -- | functions handling the movement of the player
 stepPlayer :: S.Set Key -> Player -> Player
@@ -36,8 +36,8 @@ moveBullet b | direction b == L = b{ posBX = posBX b - 5 }
 
 -- | Function handling spawning and moving enemies
 stepEnemies :: [Enemy] -> [Enemy]
-stepEnemies [] = []
-stepEnemies [e] = [e{posEX = posEX e - 0.5}]
+stepEnemies []     = []
+stepEnemies [e]    = [e{posEX = posEX e - 0.5}]
 stepEnemies (e:es) = e{posEX = posEX e - 0.5} : stepEnemies es
 
 -- | checking for collisions
@@ -45,9 +45,9 @@ collisionDetection :: GameState -> GameState
 collisionDetection gstate@GameState{enemies = e, bullets  = b, ship = s} = gstate{enemies = enemyCollision e b}
 
 enemyCollision :: [Enemy] -> [Bullet] -> [Enemy]
-enemyCollision [] _ = []
-enemyCollision [e] bs | elem True (map (checkCollision (posEX e) (posEY e)) bs) = []
-                      | otherwise                                               = [e]
+enemyCollision [] _      = []
+enemyCollision [e] bs    | elem True (map (checkCollision (posEX e) (posEY e)) bs) = []
+                         | otherwise                                               = [e]
 enemyCollision (e:es) bs | elem True (map (checkCollision (posEX e) (posEY e)) bs) = enemyCollision es bs
                          | otherwise                                               = e : enemyCollision es bs
                     
@@ -60,8 +60,8 @@ input :: Event -> GameState -> IO GameState
 input (EventKey (Char 'p') Down _ _) gstate | (isPaused gstate) == Play = return $ gstate{isPaused = Pause}
                                             | otherwise                 = return $ gstate{isPaused = Play}
 input (EventKey (Char 'f') Down _ _) gstate = return $ gstate{bullets = (Bullet{ posBX = (posPX $ ship gstate), posBY = (posPY $ ship gstate), direction = R } : (bullets gstate))}
-input (EventKey k Down _ _) gstate = return $ gstate {keys = S.insert k (keys gstate)}
-input (EventKey k Up _ _) gstate = return $ gstate {keys = S.delete k (keys gstate)}
-input _ gstate = return $ gstate
+input (EventKey k Down _ _) gstate          = return $ gstate {keys = S.insert k (keys gstate)}
+input (EventKey k Up _ _) gstate            = return $ gstate {keys = S.delete k (keys gstate)}
+input _ gstate                              = return $ gstate
 
 
