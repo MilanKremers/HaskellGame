@@ -6,7 +6,7 @@ import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 
 nO_SECS_BETWEEN_CYCLES :: Float
-nO_SECS_BETWEEN_CYCLES = 0.05
+nO_SECS_BETWEEN_CYCLES = 0.01
 
 data GameState = GameState {
                    enemies  :: [Enemy]
@@ -17,6 +17,7 @@ data GameState = GameState {
                  }
 
 data Direction = L | R
+  deriving (Eq)
 
 data Player = Player {posPlayer :: (Float, Float), livesPlayer :: Int}
   
