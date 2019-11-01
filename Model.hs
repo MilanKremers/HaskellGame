@@ -23,7 +23,7 @@ data Player = Player {posPX :: Float, posPY :: Float, livesPlayer :: Int}
   
 data Bullet = Bullet {posBX :: Float, posBY :: Float, direction :: Direction}
 
-data Enemy = Enemy {posEX :: Float, posEY :: Float, livesEnemy :: Int}
+data Enemy = Enemy {posEX :: Float, posEY :: Float}
 
 data Status = Play | Pause
   deriving(Eq)
@@ -38,4 +38,4 @@ class Renderable a where
   render :: a -> GameState
 
 initialState :: GameState
-initialState = GameState{enemies = [], bullets = [], ship = Player{posPX = 0, posPY = 0, livesPlayer = 3}, isPaused = Play, keys = S.empty}
+initialState = GameState{enemies = [Enemy{posEX = 900, posEY = -400}, Enemy{posEX = 900, posEY = -200}, Enemy{posEX = 900, posEY = 0}, Enemy{posEX = 900, posEY = 200}, Enemy{posEX = 900, posEY = 400}], bullets = [], ship = Player{posPX = 0, posPY = 0, livesPlayer = 3}, isPaused = Play, keys = S.empty}
