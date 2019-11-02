@@ -14,7 +14,8 @@ import qualified Data.Set as S
 step :: Float -> GameState -> IO GameState
 step _ gstate@GameState{enemies = e, bullets  = b, ship = s, isPaused = p, keys = k}
   | p == Pause = return $ gstate  
-  | otherwise = return $ collisionDetection GameState{enemies = stepEnemies e, bullets = stepBullets b, ship = stepPlayer k s, isPaused = p, keys = k}
+  | otherwise = return $ collisionDetection GameState{enemies = stepEnemies e, bullets = stepBullets b, 
+                                                      ship = stepPlayer k s, isPaused = p, keys = k}
 
 -- | functions handling the movement of the player
 stepPlayer :: S.Set Key -> Player -> Player
