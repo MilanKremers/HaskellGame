@@ -111,13 +111,16 @@ input _ gstate                              = return $ gstate
 
 --Enemy kiezen die bullet afschiet
 makeEnemyShoot :: [Enemy] -> StdGen -> [Bullet]
-makeEnemyShoot e g = enemyShoot (getRandomEnemy e g)
+makeEnemyShoot e g | randomNumber 1 1000 g < 10.0 = enemyShoot (getRandomEnemy e g)
+                   | otherwise                    = []  
+  
+  
 
 
 getRandomEnemy :: [Enemy] -> StdGen -> Maybe Enemy
 getRandomEnemy [] _ = Nothing
 getRandomEnemy [x] _ = Just x
-getRandomEnemy xs g = Just (xs !! (getRandomInt (randomR (0,(length xs)) g)))
+getRandomEnemy xs g = Just (xs !! (getRandomInt (randomR (0,((length xs) - 1)) g)))
 
 enemyShoot :: Maybe Enemy -> [Bullet]
 enemyShoot Nothing = []
