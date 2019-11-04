@@ -3,6 +3,7 @@ module Main where
 import Controller
 import Model
 import View
+import System.Random
 
 import Graphics.Gloss.Interface.IO.Game
 

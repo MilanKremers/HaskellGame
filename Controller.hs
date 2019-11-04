@@ -12,10 +12,10 @@ import qualified Data.Set as S
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step _ gstate@GameState{enemies = e, bullets  = b, ship = s, isPaused = p, keys = k}
-  | p == Pause = return $ gstate  
-  | otherwise = return $ checkGameOver (collisionDetection GameState{enemies = stepEnemies e, bullets = stepBullets b, 
-                                                                     ship = stepPlayer k s, isPaused = p, keys = k})
+step _ gstate@GameState{enemies = e, bullets  = b, ship = s, isPaused = p, keys = k, difficulty = d, gen = g}
+  | p == Pause || p == GameOver = return $ gstate  
+  | otherwise                   = return $ checkGameOver (collisionDetection GameState{enemies = stepEnemies e ++ spawnEnemy g d, bullets = stepBullets b, 
+                                                                                                 ship = stepPlayer k s, isPaused = p, keys = k, difficulty = d, gen = nextGen g})
 
 -- | functions handling the movement of the player
 stepPlayer :: S.Set Key -> Player -> Player
@@ -40,6 +40,26 @@ stepEnemies :: [Enemy] -> [Enemy]
 stepEnemies []     = []
 stepEnemies [e]    = [e{posEX = posEX e - 0.5}]
 stepEnemies (e:es) = e{posEX = posEX e - 0.5} : stepEnemies es
+
+spawnEnemy :: StdGen -> Float -> [Enemy]
+spawnEnemy g d | ((randomNumber 1 1000 g) - d) < 2.0 = [addEnemy (nextGen g)]
+               | otherwise                          = []  
+
+addEnemy :: StdGen -> Enemy
+addEnemy g = Enemy{posEX = 900, posEY = (randomNumber (-540) 540 g)}
+
+-- | Handling random numbers
+randomNumber :: Float -> Float -> StdGen -> Float
+randomNumber n1 n2 g = (getRandom (randomR (n1,n2) g))
+
+getRandom :: (Float, StdGen) -> Float 
+getRandom (i, _) = i      
+
+-- | Generating new stdGen
+nextGen :: StdGen -> StdGen
+nextGen g = getGen (next g)
+  where getGen :: (Int, StdGen) -> StdGen
+        getGen (_, g) = g
 
 -- | checking for collisions
 collisionDetection :: GameState -> GameState
@@ -69,12 +89,14 @@ checkEnemyCollision x y Enemy{posEX = ex, posEY = ey} | ex < x + 15 && ex > x - 
                                                 
 -- | Checking for game over
 checkGameOver :: GameState -> GameState
-checkGameOver gstate@GameState{ship = s} | (livesPlayer s) == 0 = gstate{isPaused = Pause}
+checkGameOver gstate@GameState{ship = s} | (livesPlayer s) == 0 = gstate{isPaused = GameOver}
                                          | otherwise            = gstate
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
 input (EventKey (Char 'p') Down _ _) gstate | (isPaused gstate) == Play = return $ gstate{isPaused = Pause}
                                             | otherwise                 = return $ gstate{isPaused = Play}
+input (EventKey (Char 'r') Down _ _) gstate | (isPaused gstate) == GameOver = return $ initialState
+                                            | otherwise                     = return $ gstate
 input (EventKey (Char 'f') Down _ _) gstate = return $ gstate{bullets = (Bullet{ posBX = (posPX $ ship gstate), posBY = (posPY $ ship gstate), direction = R } : (bullets gstate))}
 input (EventKey k Down _ _) gstate          = return $ gstate {keys = S.insert k (keys gstate)}
 input (EventKey k Up _ _) gstate            = return $ gstate {keys = S.delete k (keys gstate)}

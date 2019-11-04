@@ -12,7 +12,11 @@ view' :: [Picture] -> Picture
 view' xs = Pictures xs
 
 viewPure :: GameState -> [Picture]
-viewPure g = drawShip g : drawBullets g ++ drawEnemies g ++ []
+viewPure g = drawGameOver g : drawShip g : drawBullets g ++ drawEnemies g ++ []
+
+drawGameOver :: GameState -> Picture
+drawGameOver GameState{ isPaused = s } | s == GameOver = translate (-500) 0 (scale 0.5 0.5 (color red (text "Game Over, press r to restart")))
+                                       | otherwise     = text ""
 
 drawShip :: GameState -> Picture
 drawShip GameState{ship = s} = translate (posPX s) (posPY s) (color green (Circle 50)) 
