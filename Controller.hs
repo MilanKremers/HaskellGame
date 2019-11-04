@@ -14,7 +14,7 @@ import qualified Data.Set as S
 step :: Float -> GameState -> IO GameState
 step _ gstate@GameState{enemies = e, bullets  = b, ship = s, isPaused = p, keys = k, difficulty = d, gen = g}
   | p == Pause || p == GameOver = return $ gstate  
-  | otherwise                   = return $ checkGameOver (collisionDetection GameState{enemies = stepEnemies e ++ spawnEnemy g d, bullets = stepBullets b, 
+  | otherwise                   = return $ checkGameOver (collisionDetection GameState{enemies = stepEnemies e ++ spawnEnemy g d, bullets = (stepBullets b) ++ (makeEnemyShoot e g), 
                                                                                                  ship = stepPlayer k s, isPaused = p, keys = k, difficulty = d, gen = nextGen g})
 
 -- | functions handling the movement of the player
@@ -53,7 +53,10 @@ randomNumber :: Float -> Float -> StdGen -> Float
 randomNumber n1 n2 g = (getRandom (randomR (n1,n2) g))
 
 getRandom :: (Float, StdGen) -> Float 
-getRandom (i, _) = i      
+getRandom (i, _) = i  
+
+getRandomInt :: (Int,StdGen) -> Int
+getRandomInt (j,_) = j
 
 -- | Generating new stdGen
 nextGen :: StdGen -> StdGen
@@ -67,9 +70,9 @@ collisionDetection gstate@GameState{enemies = e, bullets  = b, ship = s} = gstat
 
 enemyCollision :: [Enemy] -> [Bullet] -> [Enemy]
 enemyCollision [] _      = []
-enemyCollision [e] bs    | elem True (map (checkCollision (posEX e) (posEY e)) bs) = []
+enemyCollision [e] bs    | elem True (map (checkCollisionEnemy (posEX e) (posEY e)) bs) = []
                          | otherwise                                               = [e]
-enemyCollision (e:es) bs | elem True (map (checkCollision (posEX e) (posEY e)) bs) = enemyCollision es bs
+enemyCollision (e:es) bs | elem True (map (checkCollisionEnemy (posEX e) (posEY e)) bs) = enemyCollision es bs
                          | otherwise                                               = e : enemyCollision es bs
 
 playerCollision :: Player -> [Enemy] -> Player
@@ -80,8 +83,12 @@ playerCollision p (e:es) | checkEnemyCollision (posPX p) (posPY p) e = p{livesPl
                          | otherwise                                 = playerCollision p es
                     
 checkCollision :: Float -> Float -> Bullet -> Bool
-checkCollision x y Bullet{posBX = bx, posBY = by} | bx < x + 15 && bx > x - 15 && by < y + 15 && by > y - 15 = True
-                                                  | otherwise                                                = False
+checkCollision x y Bullet{posBX = bx, posBY = by, direction = d} | bx < x + 15 && bx > x - 15 && by < y + 15 && by > y - 15 = True
+                                                                 | otherwise                                                = False
+
+checkCollisionEnemy :: Float -> Float -> Bullet -> Bool
+checkCollisionEnemy x y Bullet{posBX = bx, posBY = by, direction = d}  | d == R && bx < x + 15 && bx > x - 15 && by < y + 15 && by > y - 15 = True
+                                                                       | otherwise                                                          = False
 
 checkEnemyCollision :: Float -> Float -> Enemy -> Bool
 checkEnemyCollision x y Enemy{posEX = ex, posEY = ey} | ex < x + 15 && ex > x - 15 && ey < y + 15 && ey > y - 15 = True
@@ -102,4 +109,17 @@ input (EventKey k Down _ _) gstate          = return $ gstate {keys = S.insert k
 input (EventKey k Up _ _) gstate            = return $ gstate {keys = S.delete k (keys gstate)}
 input _ gstate                              = return $ gstate
 
+--Enemy kiezen die bullet afschiet
+makeEnemyShoot :: [Enemy] -> StdGen -> [Bullet]
+makeEnemyShoot e g = enemyShoot (getRandomEnemy e g)
+
+
+getRandomEnemy :: [Enemy] -> StdGen -> Maybe Enemy
+getRandomEnemy [] _ = Nothing
+getRandomEnemy [x] _ = Just x
+getRandomEnemy xs g = Just (xs !! (getRandomInt (randomR (0,(length xs)) g)))
+
+enemyShoot :: Maybe Enemy -> [Bullet]
+enemyShoot Nothing = []
+enemyShoot (Just x) = [Bullet{ posBX = (posEX $ x), posBY = (posEY $ x), direction = L }]
 
