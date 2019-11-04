@@ -33,6 +33,6 @@ initialState = GameState{enemies = [Enemy{posEX = 900, posEY = -400}, Enemy{posE
                                     Enemy{posEX = 900, posEY = 0}, Enemy{posEX = 900, posEY = 200}, 
                                     Enemy{posEX = 900, posEY = 400}], 
                          bullets = [], 
-                         ship = Player{posPX = 0, posPY = 0, livesPlayer = 3}, 
+                         ship = Player{posPX = 0, posPY = 0, livesPlayer = 1}, 
                          isPaused = Play, 
                          keys = S.empty}

@@ -14,8 +14,8 @@ import qualified Data.Set as S
 step :: Float -> GameState -> IO GameState
 step _ gstate@GameState{enemies = e, bullets  = b, ship = s, isPaused = p, keys = k}
   | p == Pause = return $ gstate  
-  | otherwise = return $ collisionDetection GameState{enemies = stepEnemies e, bullets = stepBullets b, 
-                                                      ship = stepPlayer k s, isPaused = p, keys = k}
+  | otherwise = return $ checkGameOver (collisionDetection GameState{enemies = stepEnemies e, bullets = stepBullets b, 
+                                                                     ship = stepPlayer k s, isPaused = p, keys = k})
 
 -- | functions handling the movement of the player
 stepPlayer :: S.Set Key -> Player -> Player
@@ -43,7 +43,7 @@ stepEnemies (e:es) = e{posEX = posEX e - 0.5} : stepEnemies es
 
 -- | checking for collisions
 collisionDetection :: GameState -> GameState
-collisionDetection gstate@GameState{enemies = e, bullets  = b, ship = s} = gstate{enemies = enemyCollision e b}
+collisionDetection gstate@GameState{enemies = e, bullets  = b, ship = s} = gstate{enemies = enemyCollision e b, ship = playerCollision s e}
 
 enemyCollision :: [Enemy] -> [Bullet] -> [Enemy]
 enemyCollision [] _      = []
@@ -51,11 +51,26 @@ enemyCollision [e] bs    | elem True (map (checkCollision (posEX e) (posEY e)) b
                          | otherwise                                               = [e]
 enemyCollision (e:es) bs | elem True (map (checkCollision (posEX e) (posEY e)) bs) = enemyCollision es bs
                          | otherwise                                               = e : enemyCollision es bs
+
+playerCollision :: Player -> [Enemy] -> Player
+playerCollision p []     = p
+playerCollision p [e]    | checkEnemyCollision (posPX p) (posPY p) e = p{livesPlayer = livesPlayer p - 1}
+                         | otherwise                                 = p
+playerCollision p (e:es) | checkEnemyCollision (posPX p) (posPY p) e = p{livesPlayer = livesPlayer p - 1}
+                         | otherwise                                 = playerCollision p es
                     
 checkCollision :: Float -> Float -> Bullet -> Bool
 checkCollision x y Bullet{posBX = bx, posBY = by} | bx < x + 15 && bx > x - 15 && by < y + 15 && by > y - 15 = True
                                                   | otherwise                                                = False
 
+checkEnemyCollision :: Float -> Float -> Enemy -> Bool
+checkEnemyCollision x y Enemy{posEX = ex, posEY = ey} | ex < x + 15 && ex > x - 15 && ey < y + 15 && ey > y - 15 = True
+                                                      | otherwise                                                = False                                             
+                                                
+-- | Checking for game over
+checkGameOver :: GameState -> GameState
+checkGameOver gstate@GameState{ship = s} | (livesPlayer s) == 0 = gstate{isPaused = Pause}
+                                         | otherwise            = gstate
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
 input (EventKey (Char 'p') Down _ _) gstate | (isPaused gstate) == Play = return $ gstate{isPaused = Pause}
