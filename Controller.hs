@@ -114,9 +114,6 @@ makeEnemyShoot :: [Enemy] -> StdGen -> [Bullet]
 makeEnemyShoot e g | randomNumber 1 1000 g < 10.0 = enemyShoot (getRandomEnemy e g)
                    | otherwise                    = []  
   
-  
-
-
 getRandomEnemy :: [Enemy] -> StdGen -> Maybe Enemy
 getRandomEnemy [] _ = Nothing
 getRandomEnemy [x] _ = Just x
