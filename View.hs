@@ -34,6 +34,6 @@ drawEnemies GameState{enemies = enemies} = drawEnemies' enemies
 
 drawEnemies' :: [Enemy] -> [Picture]
 drawEnemies' []     = []
-drawEnemies' [e]    = translate (posEX e) (posEY e) (color yellow (Circle 15)) : []
-drawEnemies' (e:es) = translate (posEX e) (posEY e) (color yellow (Circle 15)) : drawEnemies' es
+drawEnemies' [e]    = translate (posEX e) (posEY e) (color yellow (Circle 25)) : []
+drawEnemies' (e:es) = translate (posEX e) (posEY e) (color yellow (Circle 25)) : drawEnemies' es
 

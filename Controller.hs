@@ -95,21 +95,24 @@ playerCollision p (b:bs) (e:es) | checkEnemyCollision (posPX p) (posPY p) e  = p
 
                     
 checkCollision :: Float -> Float -> Bullet -> Bool
-checkCollision x y Bullet{posBX = bx, posBY = by, direction = d} | bx < x + 15 && bx > x - 15 && by < y + 15 && by > y - 15 = True
-                                                                 | otherwise                                                = False
+checkCollision x y Bullet{posBX = bx, posBY = by, direction = d} | getDist (x, y) (bx, by) < 30 = True
+                                                                 | otherwise                    = False
 
 checkCollisionEnemy :: Float -> Float -> Bullet -> Bool
-checkCollisionEnemy x y Bullet{posBX = bx, posBY = by, direction = d}  | d == R && bx < x + 15 && bx > x - 15 && by < y + 15 && by > y - 15 = True
-                                                                       | otherwise                                                          = False
+checkCollisionEnemy x y Bullet{posBX = bx, posBY = by, direction = d}  | d == R && getDist (x, y) (bx, by) < 30 = True
+                                                                       | otherwise                              = False
 
 checkEnemyCollision :: Float -> Float -> Enemy -> Bool
-checkEnemyCollision x y Enemy{posEX = ex, posEY = ey} | ex < x + 15 && ex > x - 15 && ey < y + 15 && ey > y - 15 = True
-                                                      | otherwise                                                = False
+checkEnemyCollision x y Enemy{posEX = ex, posEY = ey} | getDist (x, y) (ex, ey) < 75 = True
+                                                      | otherwise                    = False
 
 checkBulletCollision :: Float -> Float -> Bullet -> Bool
-checkBulletCollision x y Bullet{posBX = ex, posBY = ey, direction = d} | d == L &&  ex < x + 15 && ex > x - 15 && ey < y + 15 && ey > y - 15 = True
-                                                                       | otherwise                                                           = False 
-                                                
+checkBulletCollision x y Bullet{posBX = ex, posBY = ey, direction = d} | d == L &&  getDist (x, y) (ex, ey) < 50 = True
+                                                                       | otherwise                                = False 
+
+getDist :: (Float, Float) -> (Float, Float) -> Float
+getDist (x1, y1) (x2, y2) = sqrt ((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))
+
 -- | Checking for game over
 checkGameOver :: GameState -> GameState
 checkGameOver gstate@GameState{ship = s} | (livesPlayer s) == 0 = gstate{isPaused = GameOver}
