@@ -15,8 +15,8 @@ import qualified Data.Set as S
 step :: Float -> GameState -> IO GameState
 step _ gstate@GameState{enemies = e, bullets  = b, ship = s, isPaused = p, keys = k, gen = g}
   | p == Pause || p == GameOver = return $ gstate  
-  | otherwise                   = return $ checkGameOver (collisionDetection GameState{enemies = enemyAnimation e g d, bullets = (stepBullets b) ++ (makeEnemyShoot e g), 
-                                                                                                 ship = stepPlayer k s, isPaused = p, keys = k, difficulty = d, gen = nextGen g})
+  | otherwise                   = return $ checkGameOver (collisionDetection GameState{enemies = enemyAnimation e g, bullets = (stepBullets b) ++ (makeEnemyShoot e g), 
+                                                                                                 ship = stepPlayer k s, isPaused = p, keys = k,  gen = nextGen g})
 
 -- | functions handling the movement of the player
 stepPlayer :: S.Set Key -> Player -> Player
@@ -52,8 +52,8 @@ addEnemy :: StdGen -> Enemy
 addEnemy g = Enemy{posEX = 900, posEY = (randomNumber (-540) 540 g), animation = False, animation2 = 0}
 
 -- | Functions handling the animation, and the enemies 
-enemyAnimation :: [Enemy] -> StdGen -> Float -> [Enemy]
-enemyAnimation e g d  = stepAnimation(checkForAnimation(stepEnemies e ++ spawnEnemy g d))
+enemyAnimation :: [Enemy] -> StdGen -> [Enemy]
+enemyAnimation e g = stepAnimation(checkForAnimation(stepEnemies e ++ spawnEnemy g))
 
 
 checkForAnimation :: [Enemy] -> [Enemy]

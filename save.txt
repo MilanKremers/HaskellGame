@@ -1,4 +1,4 @@
-Player {posPX = -220.0, posPY = -82.0, livesPlayer = 1}
-[Enemy {posEX = 683.5, posEY = -384.19476}]
-[Bullet {posBX = 120.0, posBY = 56.0, direction = R},Bullet {posBX = 196.0, posBY = 56.0, direction = R},Bullet {posBX = 302.0, posBY = 56.0, direction = R},Bullet {posBX = 376.5, posBY = -384.19476, direction = L}]
-1234203299 1207290568
+Player {posPX = -331.0, posPY = 352.0, livesPlayer = -444}
+[Enemy {posEX = 229.0, posEY = -303.1904, animation = False, animation2 = 0.0}]
+[Bullet {posBX = -175.0, posBY = 352.0, direction = R},Bullet {posBX = -49.0, posBY = 352.0, direction = R},Bullet {posBX = 91.0, posBY = 414.0, direction = R},Bullet {posBX = 203.0, posBY = 430.0, direction = R},Bullet {posBX = 315.0, posBY = 462.0, direction = R},Bullet {posBX = 409.0, posBY = 476.0, direction = R},Bullet {posBX = 539.0, posBY = 444.0, direction = R},Bullet {posBX = -688.0, posBY = 440.36603, direction = L},Bullet {posBX = -622.5, posBY = -303.1904, direction = L},Bullet {posBX = -533.5, posBY = 440.36603, direction = L},Bullet {posBX = -462.0, posBY = -303.1904, direction = L}]
+538289418 272962009

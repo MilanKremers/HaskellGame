@@ -32,7 +32,7 @@ data Bullet = Bullet {posBX :: Float, posBY :: Float, direction :: Direction}
   deriving (Show, Read) 
 
 data Enemy = Enemy {posEX :: Float, posEY :: Float, animation :: Bool, animation2 :: Float}
-  deriving (Show, Eq)
+  deriving (Show, Eq, Read)
 
 
 initialState :: GameState
