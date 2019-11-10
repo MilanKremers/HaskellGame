@@ -15,8 +15,8 @@ import qualified Data.Set as S
 step :: Float -> GameState -> IO GameState
 step _ gstate@GameState{enemies = e, bullets  = b, ship = s, isPaused = p, keys = k, gen = g}
   | p == Pause || p == GameOver = return $ gstate  
-  | otherwise                   = return $ checkGameOver (collisionDetection GameState{enemies = stepEnemies e ++ spawnEnemy g, bullets = (stepBullets b) ++ (makeEnemyShoot e g), 
-                                                                                                 ship = stepPlayer k s, isPaused = p, keys = k, gen = nextGen g})
+  | otherwise                   = return $ checkGameOver (collisionDetection GameState{enemies = enemyAnimation e g d, bullets = (stepBullets b) ++ (makeEnemyShoot e g), 
+                                                                                                 ship = stepPlayer k s, isPaused = p, keys = k, difficulty = d, gen = nextGen g})
 
 -- | functions handling the movement of the player
 stepPlayer :: S.Set Key -> Player -> Player
@@ -49,7 +49,27 @@ spawnEnemy g | (randomNumber 1 1000 g) < 2.0 = [addEnemy (nextGen g)]
              | otherwise                     = []  
 
 addEnemy :: StdGen -> Enemy
-addEnemy g = Enemy{posEX = 900, posEY = (randomNumber (-540) 540 g)}
+addEnemy g = Enemy{posEX = 900, posEY = (randomNumber (-540) 540 g), animation = False, animation2 = 0}
+
+-- | Functions handling the animation, and the enemies 
+enemyAnimation :: [Enemy] -> StdGen -> Float -> [Enemy]
+enemyAnimation e g d  = stepAnimation(checkForAnimation(stepEnemies e ++ spawnEnemy g d))
+
+
+checkForAnimation :: [Enemy] -> [Enemy]
+checkForAnimation [] = []
+checkForAnimation [x] | animation2 x >= 50 = []
+                                         | otherwise = [x]
+checkForAnimation (x:xs) | animation2 x >= 50 = checkForAnimation xs
+                                            | otherwise = x : checkForAnimation xs 
+                                            
+stepAnimation :: [Enemy] -> [Enemy]
+stepAnimation [] = []
+stepAnimation [x]  | animation x == True = [x{animation2 = (animation2 x + 1)}]
+                   | otherwise = [x]
+stepAnimation (x:xs) | animation x == True = x{animation2 = (animation2 x + 1)} : stepAnimation xs
+                   | otherwise = x : stepAnimation xs
+
 
 -- | Handling random numbers
 randomNumber :: Float -> Float -> StdGen -> Float
@@ -71,12 +91,13 @@ nextGen g = getGen (next g)
 collisionDetection :: GameState -> GameState
 collisionDetection gstate@GameState{enemies = e, bullets = b, ship = p} = gstate{enemies = enemyCollision e b, ship = playerCollision p b e} 
 
-enemyCollision :: [Enemy] -> [Bullet] -> [Enemy] 
-enemyCollision [] bs     = []
-enemyCollision [e] bs    | elem True (map (checkCollisionEnemy (posEX e) (posEY e)) bs) = [] 
+
+enemyCollision :: [Enemy] -> [Bullet] -> [Enemy]
+enemyCollision [] _      = []
+enemyCollision [e] bs    | elem True (map (checkCollisionEnemy (posEX e) (posEY e)) bs) = e{animation = True} : []
                          | otherwise                                                    = [e]
-enemyCollision (e:es) bs | elem True (map (checkCollisionEnemy (posEX e) (posEY e)) bs) = enemyCollision es bs
-                         | otherwise                                                    = e : enemyCollision es bs
+enemyCollision (e:es) bs | elem True (map (checkCollisionEnemy (posEX e) (posEY e)) bs) = e{animation = True} : enemyCollision es bs
+                         | otherwise                                                    = e : enemyCollision es bs                         
 
 playerCollision :: Player -> [Bullet] -> [Enemy] -> Player 
 playerCollision p [] []         = p
@@ -91,6 +112,7 @@ playerCollision p [] (e:es)     | checkEnemyCollision (posPX p) (posPY p) e  = p
                                 | otherwise                                  = playerCollision p [] es     
 playerCollision p (b:bs) []     | checkBulletCollision (posPX p) (posPY p) b = p{livesPlayer = livesPlayer p - 1}  
                                 | otherwise                                  = playerCollision p bs []                           
+
 playerCollision p (b:bs) (e:es) | checkEnemyCollision (posPX p) (posPY p) e  = p{livesPlayer = livesPlayer p - 1}
                                 | checkBulletCollision (posPX p) (posPY p) b = p{livesPlayer = livesPlayer p - 1}
                                 | otherwise                                  = playerCollision p bs es
