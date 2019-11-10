@@ -29,7 +29,7 @@ data Player = Player {posPX :: Float, posPY :: Float, livesPlayer :: Int}
   
 data Bullet = Bullet {posBX :: Float, posBY :: Float, direction :: Direction}
 
-data Enemy = Enemy {posEX :: Float, posEY :: Float, animation :: Bool, animation2 :: Int}
+data Enemy = Enemy {posEX :: Float, posEY :: Float, animation :: Bool, animation2 :: Float}
   deriving (Show, Eq)
 
 

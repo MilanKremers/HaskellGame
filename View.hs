@@ -34,10 +34,10 @@ drawExplosion GameState{enemies = enemies} = drawExplosion' enemies
 
 drawExplosion' :: [Enemy] -> [Picture]
 drawExplosion' []     = []
-drawExplosion' [x]    | (animation x) == True = translate (posEX x) (posEY x) (color blue (Circle 50)) : []
-                                     | otherwise = []
-drawExplosion' (x:xs) | (animation x) == True = translate (posEX x) (posEY x) (color blue (Circle 50)) : drawExplosion' xs
-                                     | otherwise = drawExplosion' xs
+drawExplosion' [x]    | (animation x) == True = translate (posEX x) (posEY x) (color orange (ThickCircle (50 + (animation2 x * 2)) 10)) : []
+                      | otherwise = []
+drawExplosion' (x:xs) | (animation x) == True = translate (posEX x) (posEY x) (color orange (ThickCircle (50 + (animation2 x * 2)) 10)) : drawExplosion' xs
+                      | otherwise = drawExplosion' xs
                 
  
 drawEnemies :: GameState -> [Picture]
@@ -45,6 +45,8 @@ drawEnemies GameState{enemies = enemies} = drawEnemies' enemies
 
 drawEnemies' :: [Enemy] -> [Picture]
 drawEnemies' []     = []
-drawEnemies' [e]    = translate (posEX e) (posEY e) (color yellow (Circle 15)) : []
-drawEnemies' (e:es) = translate (posEX e) (posEY e) (color yellow (Circle 15)) : drawEnemies' es
+drawEnemies' [e]    | animation e == False = translate (posEX e) (posEY e) (color yellow (Circle 15)) : []
+                    | otherwise = []
+drawEnemies' (e:es) | animation e == False = translate (posEX e) (posEY e) (color yellow (Circle 15)) : drawEnemies' es
+                    | otherwise = drawEnemies' es
 

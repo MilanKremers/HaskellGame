@@ -14,7 +14,7 @@ import qualified Data.Set as S
 step :: Float -> GameState -> IO GameState
 step _ gstate@GameState{enemies = e, bullets  = b, ship = s, isPaused = p, keys = k, difficulty = d, gen = g}
   | p == Pause || p == GameOver = return $ gstate  
-  | otherwise                   = return $ checkGameOver (collisionDetection GameState{enemies = checkForAnimation(stepEnemies e ++ spawnEnemy g d), bullets = (stepBullets b) ++ (makeEnemyShoot e g), 
+  | otherwise                   = return $ checkGameOver (collisionDetection GameState{enemies = enemyAnimation e g d, bullets = (stepBullets b) ++ (makeEnemyShoot e g), 
                                                                                                  ship = stepPlayer k s, isPaused = p, keys = k, difficulty = d, gen = nextGen g})
 
 -- | functions handling the movement of the player
@@ -48,13 +48,24 @@ spawnEnemy g d | ((randomNumber 1 1000 g) - d) < 2.0 = [addEnemy (nextGen g)]
 addEnemy :: StdGen -> Enemy
 addEnemy g = Enemy{posEX = 900, posEY = (randomNumber (-540) 540 g), animation = False, animation2 = 0}
 
--- | Animatie 
+-- | Functions handling the animation, and the enemies 
+enemyAnimation :: [Enemy] -> StdGen -> Float -> [Enemy]
+enemyAnimation e g d  = stepAnimation(checkForAnimation(stepEnemies e ++ spawnEnemy g d))
+
+
 checkForAnimation :: [Enemy] -> [Enemy]
 checkForAnimation [] = []
-checkForAnimation [x] | animation2 x >= 5 = []
+checkForAnimation [x] | animation2 x >= 50 = []
                                          | otherwise = [x]
-checkForAnimation (x:xs) | animation2 x >= 5 = checkForAnimation xs
-                                            | otherwise = x : checkForAnimation xs  
+checkForAnimation (x:xs) | animation2 x >= 50 = checkForAnimation xs
+                                            | otherwise = x : checkForAnimation xs 
+                                            
+stepAnimation :: [Enemy] -> [Enemy]
+stepAnimation [] = []
+stepAnimation [x]  | animation x == True = [x{animation2 = (animation2 x + 1)}]
+                   | otherwise = [x]
+stepAnimation (x:xs) | animation x == True = x{animation2 = (animation2 x + 1)} : stepAnimation xs
+                   | otherwise = x : stepAnimation xs
 
 
 -- | Handling random numbers
