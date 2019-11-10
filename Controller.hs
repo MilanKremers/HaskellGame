@@ -8,14 +8,15 @@ import Model
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 import System.Random
+import Control.Monad
 import qualified Data.Set as S
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step _ gstate@GameState{enemies = e, bullets  = b, ship = s, isPaused = p, keys = k, difficulty = d, gen = g}
+step _ gstate@GameState{enemies = e, bullets  = b, ship = s, isPaused = p, keys = k, gen = g}
   | p == Pause || p == GameOver = return $ gstate  
-  | otherwise                   = return $ checkGameOver (collisionDetection GameState{enemies = stepEnemies e ++ spawnEnemy g d, bullets = (stepBullets b) ++ (makeEnemyShoot e g), 
-                                                                                                 ship = stepPlayer k s, isPaused = p, keys = k, difficulty = d, gen = nextGen g})
+  | otherwise                   = return $ checkGameOver (collisionDetection GameState{enemies = stepEnemies e ++ spawnEnemy g, bullets = (stepBullets b) ++ (makeEnemyShoot e g), 
+                                                                                                 ship = stepPlayer k s, isPaused = p, keys = k, gen = nextGen g})
 
 -- | functions handling the movement of the player
 stepPlayer :: S.Set Key -> Player -> Player
@@ -43,9 +44,9 @@ stepEnemies [e]    | (posEX e) - 0.5 > -920.0 = [e{posEX = posEX e - 0.5}]
 stepEnemies (e:es) | (posEX e) - 0.5 > -920.0 = e{posEX = posEX e - 0.5} : stepEnemies es
                    | otherwise                = stepEnemies es
 
-spawnEnemy :: StdGen -> Float -> [Enemy]
-spawnEnemy g d | ((randomNumber 1 1000 g) - d) < 2.0 = [addEnemy (nextGen g)]
-               | otherwise                          = []  
+spawnEnemy :: StdGen -> [Enemy]
+spawnEnemy g | (randomNumber 1 1000 g) < 2.0 = [addEnemy (nextGen g)]
+             | otherwise                     = []  
 
 addEnemy :: StdGen -> Enemy
 addEnemy g = Enemy{posEX = 900, posEY = (randomNumber (-540) 540 g)}
@@ -124,9 +125,22 @@ input (EventKey (Char 'p') Down _ _) gstate | (isPaused gstate) == Play = return
 input (EventKey (Char 'r') Down _ _) gstate | (isPaused gstate) == GameOver = return $ initialState
                                             | otherwise                     = return $ gstate
 input (EventKey (Char 'f') Down _ _) gstate = return $ gstate{bullets = (Bullet{ posBX = (posPX $ ship gstate), posBY = (posPY $ ship gstate), direction = R } : (bullets gstate))}
+input (EventKey (Char 's') Down _ _) gstate = save gstate
+input (EventKey (Char 'l') Down _ _) gstate = load gstate
 input (EventKey k Down _ _) gstate          = return $ gstate {keys = S.insert k (keys gstate)}
 input (EventKey k Up _ _) gstate            = return $ gstate {keys = S.delete k (keys gstate)}
 input _ gstate                              = return $ gstate
+
+save :: GameState -> IO GameState
+save gstate= do
+  writeFile "save.txt" ((show (ship gstate)) ++ "\n" ++ (show (enemies gstate)) ++ "\n" ++ (show (bullets gstate)) ++ "\n" ++ (show (gen gstate)))
+  return $ gstate
+
+
+load :: GameState-> IO GameState
+load gstate = do
+  input <- readFile "save.txt"
+  return $ GameState{ship = read ((lines input)!!0), enemies = read ((lines input)!!1), bullets = read ((lines input)!!2), gen = read ((lines input)!!3), keys = keys gstate, isPaused = Play}
 
 --Enemy kiezen die bullet afschiet
 makeEnemyShoot :: [Enemy] -> StdGen -> [Bullet]

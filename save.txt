@@ -1,0 +1,4 @@
+Player {posPX = -220.0, posPY = -82.0, livesPlayer = 1}
+[Enemy {posEX = 683.5, posEY = -384.19476}]
+[Bullet {posBX = 120.0, posBY = 56.0, direction = R},Bullet {posBX = 196.0, posBY = 56.0, direction = R},Bullet {posBX = 302.0, posBY = 56.0, direction = R},Bullet {posBX = 376.5, posBY = -384.19476, direction = L}]
+1234203299 1207290568
