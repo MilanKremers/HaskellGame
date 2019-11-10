@@ -50,3 +50,4 @@ drawEnemies' [e]    | animation e == False = translate (posEX e) (posEY e) (colo
 drawEnemies' (e:es) | animation e == False = translate (posEX e) (posEY e) (color yellow (Circle 15)) : drawEnemies' es
                     | otherwise = drawEnemies' es
 
+

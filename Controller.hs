@@ -28,18 +28,20 @@ stepPlayer k s | S.member (SpecialKey KeyUp)    k = s{posPX = posPX s, posPY = p
 -- | Functions handling the movement of bullets
 stepBullets :: [Bullet] -> [Bullet]
 stepBullets []     = []
-stepBullets [b]    = [moveBullet b]
-stepBullets (b:bs) = moveBullet b : stepBullets bs
+stepBullets [b]    | direction b == L && (posBX b) - 2 > -920.0 = [b{ posBX = posBX b - 2 }]
+                   | direction b == R && (posBX b) + 2 < 920.0  = [b{ posBX = posBX b + 2 }]
+                   | otherwise                                  = []
+stepBullets (b:bs) | direction b == L && (posBX b) - 2 > -920.0 = b{ posBX = posBX b - 2 } : stepBullets bs
+                   | direction b == R && (posBX b) + 2 < 920.0  = b{ posBX = posBX b + 2 } : stepBullets bs
+                   | otherwise                                  = stepBullets bs
 
-moveBullet :: Bullet -> Bullet
-moveBullet b | direction b == L = b{ posBX = posBX b - 5 }
-             | otherwise        = b{ posBX = posBX b + 5 }
-
--- | Function handling spawning and moving enemies
+-- | Function handling spawning an despawning and moving enemies
 stepEnemies :: [Enemy] -> [Enemy]
 stepEnemies []     = []
-stepEnemies [e]    = [e{posEX = posEX e - 0.5}]
-stepEnemies (e:es) = e{posEX = posEX e - 0.5} : stepEnemies es
+stepEnemies [e]    | (posEX e) - 0.5 > -920.0 = [e{posEX = posEX e - 0.5}]
+                   | otherwise                = []
+stepEnemies (e:es) | (posEX e) - 0.5 > -920.0 = e{posEX = posEX e - 0.5} : stepEnemies es
+                   | otherwise                = stepEnemies es
 
 spawnEnemy :: StdGen -> Float -> [Enemy]
 spawnEnemy g d | ((randomNumber 1 1000 g) - d) < 2.0 = [addEnemy (nextGen g)]
@@ -86,50 +88,53 @@ nextGen g = getGen (next g)
 
 -- | checking for collisions
 collisionDetection :: GameState -> GameState
-collisionDetection gstate@GameState{enemies = e, bullets  = b, ship = s} = gstate{enemies = enemyCollision e b, ship = playerCollision s b e}
+collisionDetection gstate@GameState{enemies = e, bullets = b, ship = p} = gstate{enemies = enemyCollision e b, ship = playerCollision p b e} 
+
 
 enemyCollision :: [Enemy] -> [Bullet] -> [Enemy]
 enemyCollision [] _      = []
 enemyCollision [e] bs    | elem True (map (checkCollisionEnemy (posEX e) (posEY e)) bs) = e{animation = True} : []
                          | otherwise                                                    = [e]
 enemyCollision (e:es) bs | elem True (map (checkCollisionEnemy (posEX e) (posEY e)) bs) = e{animation = True} : enemyCollision es bs
-                         | otherwise                                                    = e : enemyCollision es bs
+                         | otherwise                                                    = e : enemyCollision es bs                         
 
-playerCollision :: Player -> [Bullet] -> [Enemy] -> Player
-playerCollision p [] []     = p
-playerCollision p [] [e]    | checkEnemyCollision (posPX p) (posPY p) e = p{livesPlayer = livesPlayer p - 1}
-                            | otherwise                                 = p
-playerCollision p [b] []    | checkBulletCollision (posPX p) (posPY p) b = p{livesPlayer = livesPlayer p - 1}
-                            | otherwise                                 = p
-playerCollision p [b] [e]   | checkBulletCollision (posPX p) (posPY p) b = p{livesPlayer = livesPlayer p - 1}
-                            | checkEnemyCollision (posPX p) (posPY p) e = p{livesPlayer = livesPlayer p - 1}
-                            | otherwise                                 = p      
-playerCollision p [] (e:es) | checkEnemyCollision (posPX p) (posPY p) e = p{livesPlayer = livesPlayer p - 1}  
-                            | otherwise                                 = playerCollision p [] es     
-playerCollision p (b:bs) [] | checkBulletCollision (posPX p) (posPY p) b = p{livesPlayer = livesPlayer p - 1}  
-                            | otherwise                                 = playerCollision p bs []                           
+playerCollision :: Player -> [Bullet] -> [Enemy] -> Player 
+playerCollision p [] []         = p
+playerCollision p [] [e]        | checkEnemyCollision (posPX p) (posPY p) e  = p{livesPlayer = livesPlayer p - 1}
+                                | otherwise                                  = p
+playerCollision p [b] []        | checkBulletCollision (posPX p) (posPY p) b = p{livesPlayer = livesPlayer p - 1}
+                                | otherwise                                  = p
+playerCollision p [b] [e]       | checkBulletCollision (posPX p) (posPY p) b = p{livesPlayer = livesPlayer p - 1}
+                                | checkEnemyCollision (posPX p) (posPY p) e  = p{livesPlayer = livesPlayer p - 1}
+                                | otherwise                                  = p      
+playerCollision p [] (e:es)     | checkEnemyCollision (posPX p) (posPY p) e  = p{livesPlayer = livesPlayer p - 1}  
+                                | otherwise                                  = playerCollision p [] es     
+playerCollision p (b:bs) []     | checkBulletCollision (posPX p) (posPY p) b = p{livesPlayer = livesPlayer p - 1}  
+                                | otherwise                                  = playerCollision p bs []                           
+
 playerCollision p (b:bs) (e:es) | checkEnemyCollision (posPX p) (posPY p) e  = p{livesPlayer = livesPlayer p - 1}
                                 | checkBulletCollision (posPX p) (posPY p) b = p{livesPlayer = livesPlayer p - 1}
                                 | otherwise                                  = playerCollision p bs es
-
-
-                    
+                 
 checkCollision :: Float -> Float -> Bullet -> Bool
-checkCollision x y Bullet{posBX = bx, posBY = by, direction = d} | bx < x + 15 && bx > x - 15 && by < y + 15 && by > y - 15 = True
-                                                                 | otherwise                                                = False
+checkCollision x y Bullet{posBX = bx, posBY = by, direction = d} | getDist (x, y) (bx, by) < 30 = True
+                                                                 | otherwise                    = False
 
 checkCollisionEnemy :: Float -> Float -> Bullet -> Bool
-checkCollisionEnemy x y Bullet{posBX = bx, posBY = by, direction = d}  | d == R && bx < x + 15 && bx > x - 15 && by < y + 15 && by > y - 15 = True
-                                                                       | otherwise                                                          = False
+checkCollisionEnemy x y Bullet{posBX = bx, posBY = by, direction = d}  | d == R && getDist (x, y) (bx, by) < 30 = True
+                                                                       | otherwise                              = False
 
 checkEnemyCollision :: Float -> Float -> Enemy -> Bool
-checkEnemyCollision x y Enemy{posEX = ex, posEY = ey} | ex < x + 15 && ex > x - 15 && ey < y + 15 && ey > y - 15 = True
-                                                      | otherwise                                                = False
+checkEnemyCollision x y Enemy{posEX = ex, posEY = ey} | getDist (x, y) (ex, ey) < 75 = True
+                                                      | otherwise                    = False
 
 checkBulletCollision :: Float -> Float -> Bullet -> Bool
-checkBulletCollision x y Bullet{posBX = ex, posBY = ey, direction = d} | d == L &&  ex < x + 15 && ex > x - 15 && ey < y + 15 && ey > y - 15 = True
-                                                                       | otherwise                                                           = False 
-                                                
+checkBulletCollision x y Bullet{posBX = ex, posBY = ey, direction = d} | d == L &&  getDist (x, y) (ex, ey) < 50 = True
+                                                                       | otherwise                                = False 
+
+getDist :: (Float, Float) -> (Float, Float) -> Float
+getDist (x1, y1) (x2, y2) = sqrt ((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))
+
 -- | Checking for game over
 checkGameOver :: GameState -> GameState
 checkGameOver gstate@GameState{ship = s} | (livesPlayer s) == 0 = gstate{isPaused = GameOver}
