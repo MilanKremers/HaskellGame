@@ -29,8 +29,9 @@ data Player = Player {posPX :: Float, posPY :: Float, livesPlayer :: Int}
   
 data Bullet = Bullet {posBX :: Float, posBY :: Float, direction :: Direction}
 
-data Enemy = Enemy {posEX :: Float, posEY :: Float}
-  deriving (Show)
+data Enemy = Enemy {posEX :: Float, posEY :: Float, animation :: Bool, animation2 :: Int}
+  deriving (Show, Eq)
+
 
 initialState :: GameState
 initialState = GameState{enemies = [],

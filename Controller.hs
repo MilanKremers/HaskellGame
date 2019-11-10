@@ -14,7 +14,7 @@ import qualified Data.Set as S
 step :: Float -> GameState -> IO GameState
 step _ gstate@GameState{enemies = e, bullets  = b, ship = s, isPaused = p, keys = k, difficulty = d, gen = g}
   | p == Pause || p == GameOver = return $ gstate  
-  | otherwise                   = return $ checkGameOver (collisionDetection GameState{enemies = stepEnemies e ++ spawnEnemy g d, bullets = (stepBullets b) ++ (makeEnemyShoot e g), 
+  | otherwise                   = return $ checkGameOver (collisionDetection GameState{enemies = checkForAnimation(stepEnemies e ++ spawnEnemy g d), bullets = (stepBullets b) ++ (makeEnemyShoot e g), 
                                                                                                  ship = stepPlayer k s, isPaused = p, keys = k, difficulty = d, gen = nextGen g})
 
 -- | functions handling the movement of the player
@@ -46,7 +46,16 @@ spawnEnemy g d | ((randomNumber 1 1000 g) - d) < 2.0 = [addEnemy (nextGen g)]
                | otherwise                          = []  
 
 addEnemy :: StdGen -> Enemy
-addEnemy g = Enemy{posEX = 900, posEY = (randomNumber (-540) 540 g)}
+addEnemy g = Enemy{posEX = 900, posEY = (randomNumber (-540) 540 g), animation = False, animation2 = 0}
+
+-- | Animatie 
+checkForAnimation :: [Enemy] -> [Enemy]
+checkForAnimation [] = []
+checkForAnimation [x] | animation2 x >= 5 = []
+                                         | otherwise = [x]
+checkForAnimation (x:xs) | animation2 x >= 5 = checkForAnimation xs
+                                            | otherwise = x : checkForAnimation xs  
+
 
 -- | Handling random numbers
 randomNumber :: Float -> Float -> StdGen -> Float
@@ -70,10 +79,10 @@ collisionDetection gstate@GameState{enemies = e, bullets  = b, ship = s} = gstat
 
 enemyCollision :: [Enemy] -> [Bullet] -> [Enemy]
 enemyCollision [] _      = []
-enemyCollision [e] bs    | elem True (map (checkCollisionEnemy (posEX e) (posEY e)) bs) = []
-                         | otherwise                                               = [e]
-enemyCollision (e:es) bs | elem True (map (checkCollisionEnemy (posEX e) (posEY e)) bs) = enemyCollision es bs
-                         | otherwise                                               = e : enemyCollision es bs
+enemyCollision [e] bs    | elem True (map (checkCollisionEnemy (posEX e) (posEY e)) bs) = e{animation = True} : []
+                         | otherwise                                                    = [e]
+enemyCollision (e:es) bs | elem True (map (checkCollisionEnemy (posEX e) (posEY e)) bs) = e{animation = True} : enemyCollision es bs
+                         | otherwise                                                    = e : enemyCollision es bs
 
 playerCollision :: Player -> [Bullet] -> [Enemy] -> Player
 playerCollision p [] []     = p

@@ -12,7 +12,7 @@ view' :: [Picture] -> Picture
 view' xs = Pictures xs
 
 viewPure :: GameState -> [Picture]
-viewPure g = drawGameOver g : drawShip g : drawBullets g ++ drawEnemies g ++ []
+viewPure g = drawGameOver g : drawShip g : drawBullets g ++ drawEnemies g ++ drawExplosion g ++[]
 
 drawGameOver :: GameState -> Picture
 drawGameOver GameState{ isPaused = s } | s == GameOver = translate (-500) 0 (scale 0.5 0.5 (color red (text "Game Over, press r to restart")))
@@ -29,6 +29,17 @@ drawBullets' []     = []
 drawBullets' [b]    = translate (posBX b) (posBY b) (color red (Circle 5)) : []
 drawBullets' (b:bs) = translate (posBX b) (posBY b) (color red (Circle 5)) : drawBullets' bs 
 
+drawExplosion :: GameState -> [Picture]
+drawExplosion GameState{enemies = enemies} = drawExplosion' enemies
+
+drawExplosion' :: [Enemy] -> [Picture]
+drawExplosion' []     = []
+drawExplosion' [x]    | (animation x) == True = translate (posEX x) (posEY x) (color blue (Circle 50)) : []
+                                     | otherwise = []
+drawExplosion' (x:xs) | (animation x) == True = translate (posEX x) (posEY x) (color blue (Circle 50)) : drawExplosion' xs
+                                     | otherwise = drawExplosion' xs
+                
+ 
 drawEnemies :: GameState -> [Picture]
 drawEnemies GameState{enemies = enemies} = drawEnemies' enemies
 
